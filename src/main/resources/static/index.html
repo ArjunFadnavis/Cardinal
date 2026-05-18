@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cardinal — Boat Rental</title>
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+    <header>
+        <div class="header-brand">
+            <h1>Cardinal</h1>
+            <span class="header-subtitle">Boat rental</span>
+        </div>
+        <nav>
+            <button type="button" class="tab active" data-view="desk">Front desk</button>
+            <button type="button" class="tab" data-view="beach">Beach</button>
+            <button type="button" class="tab" data-view="wips">WIPS</button>
+        </nav>
+        <p class="status-line">
+            <span id="connection-status">Connecting…</span>
+            <span class="sep">·</span>
+            <span id="last-updated">—</span>
+        </p>
+    </header>
+
+    <main>
+        <section id="desk-view" class="view active">
+            <div class="panel assign-panel">
+                <label for="customer-name">Customer name (for next assignment)</label>
+                <input id="customer-name" type="text" placeholder="e.g. Jamie Smith" autocomplete="name">
+            </div>
+            <div class="panel export-panel">
+                <p class="export-desc">At end of day, append completed rentals to the Excel log (only trips not exported yet).</p>
+                <button type="button" id="export-excel-btn" class="btn btn-export">Append to Excel</button>
+                <p id="export-result" class="export-result" aria-live="polite"></p>
+            </div>
+            <div id="desk-boat-list" class="boat-list"></div>
+        </section>
+
+        <section id="beach-view" class="view">
+            <p class="hint">Assigned — send out when the customer is ready. Out — mark returned when they’re back.</p>
+            <div id="beach-boat-list" class="boat-list"></div>
+        </section>
+
+        <section id="wips-view" class="view">
+            <div class="panel">
+                <h2 class="panel-title" id="wips-form-title">Add to waitlist</h2>
+                <p id="wips-form-banner" class="wips-form-banner hidden" aria-live="polite"></p>
+                <label for="wips-customer-name">Customer name</label>
+                <input id="wips-customer-name" type="text" placeholder="e.g. John Smith" class="wips-input">
+
+                <label for="wips-mode">What do they want?</label>
+                <select id="wips-mode" class="wips-input">
+                    <option value="single">One boat type</option>
+                    <option value="all">All of these (AND)</option>
+                    <option value="any">Any one of these (OR)</option>
+                    <option value="party">Anything for party size</option>
+                    <option value="advanced">Custom combination (nested)</option>
+                </select>
+
+                <div class="wips-mode-panel" data-mode="single">
+                    <label for="wips-single-type">Boat type</label>
+                    <select id="wips-single-type" class="wips-input"></select>
+                    <label for="wips-single-qty">Quantity</label>
+                    <input id="wips-single-qty" type="number" min="1" value="1" class="wips-input wips-qty-input">
+                </div>
+
+                <div class="wips-mode-panel hidden" data-mode="all">
+                    <p class="hint">Customer needs every line below (e.g. canoe AND kayak).</p>
+                    <div id="wips-rows"></div>
+                    <button type="button" id="wips-add-row" class="btn btn-small">+ Add boat</button>
+                </div>
+
+                <div class="wips-mode-panel hidden" data-mode="any">
+                    <p class="hint">Customer needs one of these options (e.g. canoe OR kayak).</p>
+                    <div id="wips-or-rows"></div>
+                    <button type="button" id="wips-add-or-option" class="btn btn-small">+ Add option</button>
+                </div>
+
+                <div class="wips-mode-panel hidden" data-mode="party">
+                    <p class="hint">Match boats whose seats add up to exactly the party size (not over). Optionally exclude types.</p>
+                    <label for="wips-party-size">Party size (people)</label>
+                    <input id="wips-party-size" type="number" min="1" value="2" class="wips-input wips-qty-input">
+                    <p class="wips-sub-label">Do not use (check all that apply):</p>
+                    <div id="wips-exclude-types" class="wips-exclude-types"></div>
+                </div>
+
+                <div class="wips-mode-panel hidden" data-mode="advanced">
+                    <p class="hint">Build nested rules with groups. <strong>All of</strong> = every item required; <strong>Any one of</strong> = customer picks one branch (e.g. canoe or kayak, plus a paddleboard).</p>
+                    <div id="wips-advanced-root" class="wips-rule-tree"></div>
+                </div>
+
+                <div class="wips-form-actions">
+                    <button type="button" id="wips-add-btn" class="btn btn-assign wips-submit">Add to WIPS</button>
+                    <button type="button" id="wips-edit-cancel" class="btn btn-return wips-submit hidden">Cancel edit</button>
+                </div>
+            </div>
+
+            <div class="panel">
+                <h2 class="panel-title">Waitlist</h2>
+                <p class="hint">When boats return, matching customers appear as <strong>NOTIFIED</strong>. Use <strong>Edit</strong> to change a request, or <strong>Requeue at top</strong> if they were called but want something different.</p>
+                <div id="wips-list"></div>
+            </div>
+        </section>
+    </main>
+
+    <div id="toast" class="toast hidden" role="status"></div>
+
+    <script src="/app.js"></script>
+    <script src="/wips.js"></script>
+</body>
+</html>
