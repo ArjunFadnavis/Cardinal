@@ -2,7 +2,7 @@
 
 taskkill /F /IM java.exe >nul 2>&1
 
-cd /d C:\path
+
 
 del data\boatrental.db
 
@@ -28,6 +28,6 @@ echo http://localhost:8080
 echo =====================================
 echo.
 
-mvn spring-boot:run
-
+java -jar target\boat-rental-0.1.0.jar
 pause
+
