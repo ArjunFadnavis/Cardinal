@@ -28,6 +28,6 @@ echo http://localhost:8080
 echo =====================================
 echo.
 
-java -jar target\boat-rental-0.1.0.jar
+java -jar target\Cardinal.jar
 pause
 
