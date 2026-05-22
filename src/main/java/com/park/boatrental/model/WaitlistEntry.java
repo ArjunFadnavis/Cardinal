@@ -24,6 +24,9 @@ public class WaitlistEntry {
     @Column(nullable = false)
     private String customerName;
 
+    /** Number staff calls when boats are ready (e.g. pager/ticket number). */
+    private Integer queueNumber;
+
     @Lob
     @Column(nullable = false)
     private String requirementJson;
@@ -57,6 +60,14 @@ public class WaitlistEntry {
 
     public void setCustomerName(String customerName) {
         this.customerName = customerName;
+    }
+
+    public Integer getQueueNumber() {
+        return queueNumber;
+    }
+
+    public void setQueueNumber(Integer queueNumber) {
+        this.queueNumber = queueNumber;
     }
 
     public String getRequirementJson() {

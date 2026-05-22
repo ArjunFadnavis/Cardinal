@@ -198,6 +198,49 @@ main {
     max-width: 6rem;
 }
 
+.wips-field-hint {
+    margin: -0.5rem 0 0.75rem;
+}
+
+.wips-card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 0.75rem;
+    margin-bottom: 0.5rem;
+}
+
+.wips-card-call {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+}
+
+.wips-card-call-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #555;
+}
+
+.wips-card-call-value {
+    font-size: 2rem;
+    font-weight: 800;
+    line-height: 1;
+    color: #1e5a8a;
+}
+
+.wips-card-call-missing {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #856404;
+}
+
+.wips-card-name {
+    font-size: 1.05rem;
+}
+
 .wips-rule-tree {
     margin-bottom: 0.75rem;
 }
@@ -367,6 +410,7 @@ main {
     gap: 0.5rem;
     margin-bottom: 0.35rem;
 }
+
 
 .wips-req {
     margin: 0 0 0.35rem;

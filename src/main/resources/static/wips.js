@@ -350,8 +350,38 @@ function appendRequirementNode(node, container) {
     }
 }
 
+function entryQueueNumber(entry) {
+    if (entry.queueNumber != null && entry.queueNumber !== "") {
+        return entry.queueNumber;
+    }
+    if (entry.queue_number != null && entry.queue_number !== "") {
+        return entry.queue_number;
+    }
+    return null;
+}
+
+function readQueueNumber() {
+    const raw = document.getElementById("wips-queue-number").value.trim();
+    if (!raw) return null;
+    const n = parseInt(raw, 10);
+    return Number.isFinite(n) && n >= 1 ? n : null;
+}
+
+function suggestNextQueueNumber() {
+    if (editingEntryId) return;
+    const next = waitlistState.nextQueueNumber;
+    if (next != null && next >= 1) {
+        document.getElementById("wips-queue-number").value = String(next);
+    }
+}
+
+function formatCallNumber(queueNumber) {
+    return queueNumber != null ? `#${queueNumber}` : "";
+}
+
 function resetWaitlistForm() {
     document.getElementById("wips-customer-name").value = "";
+    document.getElementById("wips-queue-number").value = "";
     document.getElementById("wips-mode").value = "single";
     document.getElementById("wips-single-qty").value = "1";
     document.getElementById("wips-party-size").value = "2";
@@ -361,6 +391,7 @@ function resetWaitlistForm() {
     initAdvancedBuilder();
     onWipsModeChange();
     refreshBoatTypeSelects();
+    suggestNextQueueNumber();
 }
 
 function setEditMode(entry) {
@@ -372,6 +403,8 @@ function setEditMode(entry) {
     document.getElementById("wips-add-btn").textContent = "Save changes";
     document.getElementById("wips-edit-cancel").classList.remove("hidden");
     document.getElementById("wips-customer-name").value = entry.customerName;
+    const qn = entryQueueNumber(entry);
+    document.getElementById("wips-queue-number").value = qn != null ? String(qn) : "";
     applyRequirementToForm(entry.requirement);
     document.getElementById("wips-customer-name").focus();
     document.getElementById("wips-form-title").closest(".panel")?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -408,15 +441,23 @@ async function saveWaitlistEntry() {
         return;
     }
     try {
+        const queueNumber = readQueueNumber();
+        if (queueNumber == null) {
+            showToast("Enter a call number for the customer", true);
+            document.getElementById("wips-queue-number").focus();
+            return;
+        }
         if (editingEntryId) {
-            await putJson(`/api/waitlist/${editingEntryId}`, { customerName: name, requirement });
-            showToast(`${name} — waitlist updated`);
+            await putJson(`/api/waitlist/${editingEntryId}`, { customerName: name, queueNumber, requirement });
+            const num = formatCallNumber(queueNumber);
+            showToast(`${num ? num + " " : ""}${name} — waitlist updated`);
             cancelEdit();
         } else {
-            await post("/api/waitlist", { customerName: name, requirement });
+            await post("/api/waitlist", { customerName: name, queueNumber, requirement });
             document.getElementById("wips-customer-name").value = "";
             resetWaitlistForm();
-            showToast(`${name} added to WIPS`);
+            const num = formatCallNumber(queueNumber);
+            showToast(`${num ? num + " " : ""}${name} added to WIPS`);
         }
         await refresh();
         await refreshWips();
@@ -448,7 +489,8 @@ async function putJson(path, body) {
 async function requeueWaitlist(entry) {
     try {
         const result = await post(`/api/waitlist/${entry.id}/requeue`, {});
-        showToast(`${result.customerName} moved to top of waitlist`);
+        const num = formatCallNumber(result.queueNumber);
+        showToast(`${num ? num + " " : ""}${result.customerName} moved to top of waitlist`);
         await refresh();
         await refreshWips();
         const updated = (waitlistState.entries || []).find((e) => e.id === entry.id);
@@ -463,7 +505,8 @@ async function requeueWaitlist(entry) {
 async function approveWaitlist(id) {
     try {
         const result = await post(`/api/waitlist/${id}/approve`);
-        showToast(`${result.customerName} — boats held as waitlisted`);
+        const num = formatCallNumber(result.queueNumber);
+        showToast(`${num ? num + " " : ""}${result.customerName} — boats held as waitlisted`);
         await refresh();
         await refreshWips();
     } catch (err) {
@@ -517,10 +560,20 @@ function renderWaitlist() {
             actions = `<button type="button" class="btn btn-return" data-remove="${entry.id}">Remove</button>`;
         }
 
+        const qn = entryQueueNumber(entry);
+        const hasCallNumber = qn != null;
+        const callValue = hasCallNumber ? String(qn) : "Not set";
+        const callValueClass = hasCallNumber ? "wips-card-call-value" : "wips-card-call-value wips-card-call-missing";
         card.innerHTML = `
-            <div class="wips-card-head">
-                <strong>${escapeHtml(entry.customerName)}</strong>
+            <div class="wips-card-top">
+                <div class="wips-card-call">
+                    <span class="wips-card-call-label">Call #</span>
+                    <span class="${callValueClass}">${escapeHtml(callValue)}</span>
+                </div>
                 <span class="status-badge ${entry.status === "NOTIFIED" ? "status-assigned" : "status-available"}">${entry.status}</span>
+            </div>
+            <div class="wips-card-head">
+                <strong class="wips-card-name">${escapeHtml(entry.customerName)}</strong>
             </div>
             <p class="wips-req">${escapeHtml(entry.requirementSummary)}</p>
             ${boatsHtml}
@@ -549,7 +602,9 @@ function checkWaitlistNotifications() {
     for (const entry of notified) {
         if (!lastNotifiedIds.has(entry.id)) {
             const boats = (entry.proposedBoatNumbers || []).join(", ");
-            showToast(`WIPS: ${entry.customerName} can go out — boats ${boats}`, false);
+            const num = formatCallNumber(entryQueueNumber(entry));
+            const call = num ? `Call ${num}` : entry.customerName;
+            showToast(`WIPS: ${call} can go out — boats ${boats}`, false);
             lastNotifiedIds.add(entry.id);
         }
     }
@@ -562,6 +617,7 @@ function checkWaitlistNotifications() {
 async function refreshWips() {
     try {
         waitlistState = await fetchWaitlist();
+        suggestNextQueueNumber();
         refreshBoatTypeSelects();
         const singleSelect = document.getElementById("wips-single-type");
         if (singleSelect && waitlistState.boatTypes.length > 0) {

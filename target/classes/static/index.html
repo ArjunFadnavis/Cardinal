@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cardinal — Boat Rental</title>
-    <link rel="stylesheet" href="/styles.css">
+    <link rel="stylesheet" href="/styles.css?v=2">
 </head>
 <body>
     <header>
@@ -49,6 +49,10 @@
                 <p id="wips-form-banner" class="wips-form-banner hidden" aria-live="polite"></p>
                 <label for="wips-customer-name">Customer name</label>
                 <input id="wips-customer-name" type="text" placeholder="e.g. John Smith" class="wips-input">
+
+                <label for="wips-queue-number">Call number</label>
+                <input id="wips-queue-number" type="number" min="1" required placeholder="e.g. 42" class="wips-input wips-qty-input">
+                <p class="hint wips-field-hint">Number you call over the PA when their boats are ready.</p>
 
                 <label for="wips-mode">What do they want?</label>
                 <select id="wips-mode" class="wips-input">
@@ -99,7 +103,7 @@
 
             <div class="panel">
                 <h2 class="panel-title">Waitlist</h2>
-                <p class="hint">When boats return, matching customers appear as <strong>NOTIFIED</strong>. Use <strong>Edit</strong> to change a request, or <strong>Requeue at top</strong> if they were called but want something different.</p>
+                <p class="hint">Give each customer a <strong>call number</strong>. When boats return, matching entries show as <strong>NOTIFIED</strong> — call that number. Use <strong>Edit</strong> to change a request, or <strong>Requeue at top</strong> if they were called but want something different.</p>
                 <div id="wips-list"></div>
             </div>
         </section>
@@ -107,7 +111,7 @@
 
     <div id="toast" class="toast hidden" role="status"></div>
 
-    <script src="/app.js"></script>
-    <script src="/wips.js"></script>
+    <script src="/app.js?v=2"></script>
+    <script src="/wips.js?v=2"></script>
 </body>
 </html>

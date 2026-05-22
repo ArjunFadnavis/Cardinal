@@ -9,6 +9,7 @@ import java.util.List;
 public record WaitlistEntryView(
         Long id,
         String customerName,
+        Integer queueNumber,
         String requirementSummary,
         RequirementNode requirement,
         WaitlistStatus status,

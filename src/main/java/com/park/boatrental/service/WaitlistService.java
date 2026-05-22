@@ -50,7 +50,8 @@ public class WaitlistService {
                 .toList();
         return new WaitlistStateView(
                 active.stream().map(this::toView).toList(),
-                boatTypes);
+                boatTypes,
+                waitlistEntryRepository.findMaxQueueNumber() + 1);
     }
 
     @Transactional
@@ -61,6 +62,7 @@ public class WaitlistService {
 
         WaitlistEntry entry = new WaitlistEntry();
         entry.setCustomerName(name);
+        entry.setQueueNumber(requireQueueNumber(request.queueNumber()));
         entry.setRequirementJson(RequirementJson.write(requirement));
         entry.setRequirementSummary(WaitlistMatcher.summarize(requirement));
         entry.setStatus(WaitlistStatus.WAITING);
@@ -97,6 +99,7 @@ public class WaitlistService {
         validateRequirement(requirement);
 
         entry.setCustomerName(name);
+        entry.setQueueNumber(normalizeQueueNumber(request.queueNumber()));
         entry.setRequirementJson(RequirementJson.write(requirement));
         entry.setRequirementSummary(WaitlistMatcher.summarize(requirement));
         clearNotification(entry);
@@ -292,6 +295,24 @@ public class WaitlistService {
         return name.trim();
     }
 
+    private static Integer normalizeQueueNumber(Integer queueNumber) {
+        if (queueNumber == null) {
+            return null;
+        }
+        if (queueNumber < 1) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Call number must be at least 1");
+        }
+        return queueNumber;
+    }
+
+    private static Integer requireQueueNumber(Integer queueNumber) {
+        Integer normalized = normalizeQueueNumber(queueNumber);
+        if (normalized == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Call number is required");
+        }
+        return normalized;
+    }
+
     private WaitlistEntryView toView(WaitlistEntry entry) {
         List<String> proposedBoatNumbers = new ArrayList<>();
         if (entry.getProposedBoatIds() != null && !entry.getProposedBoatIds().isBlank()) {
@@ -304,6 +325,7 @@ public class WaitlistService {
         return new WaitlistEntryView(
                 entry.getId(),
                 entry.getCustomerName(),
+                entry.getQueueNumber(),
                 entry.getRequirementSummary(),
                 requirement,
                 entry.getStatus(),
