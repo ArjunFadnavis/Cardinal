@@ -15,9 +15,7 @@ import java.util.Optional;
  * <ul>
  *   <li>Under 16 must share a boat with an adult</li>
  *   <li>16–18 may paddle solo or share a tandem with another 16–18; not with a younger child</li>
- *   <li>Canoe: 2 people (adult + partner, two adults, or two teens); 3 people with at least one
- *       adult and at least one under 90 lbs (under-50 box counts); 4 people with at least one adult,
- *       at least two under 50 lbs, and any other guests</li>
+ *   <li>Canoe, pedal boat, single kayak/SUP, and tandem kayak each have their own rules (see README)</li>
  * </ul>
  */
 public final class PartyCompositionMatcher {
@@ -98,6 +96,7 @@ public final class PartyCompositionMatcher {
     private static List<PartyPools> patternsFor(Boat boat) {
         return switch (boatKind(boat.getBoatType())) {
             case CANOE -> canoePatterns();
+            case PEDAL -> pedalPatterns();
             case SINGLE -> singlePatterns();
             case TANDEM -> tandemPatterns();
             case MULTI -> multiPatterns(BoatCapacity.seatsForType(boat.getBoatType()));
@@ -187,20 +186,177 @@ public final class PartyCompositionMatcher {
                 || group.childrenAge16to18 == 1;
     }
 
+    private static List<PartyPools> pedalPatterns() {
+        List<PartyPools> patterns = new ArrayList<>();
+        for (int people = 2; people <= 4; people++) {
+            buildPedalGroups(people, new PartyPools(), patterns);
+        }
+        return patterns;
+    }
+
+    private static void buildPedalGroups(int remaining, PartyPools group, List<PartyPools> out) {
+        if (remaining == 0) {
+            if (isValidPedalGroup(group)) {
+                out.add(copy(group));
+            }
+            return;
+        }
+        tryAddPedal(group, out, remaining, p -> {
+            p.adults++;
+            return true;
+        });
+        tryAddPedal(group, out, remaining, p -> {
+            p.childrenAge16to18++;
+            return true;
+        });
+        tryAddPedal(group, out, remaining, p -> {
+            p.childrenUnder16++;
+            return true;
+        });
+        tryAddPedal(group, out, remaining, p -> {
+            p.childrenUnder90Lbs++;
+            return true;
+        });
+        tryAddPedal(group, out, remaining, p -> {
+            p.childrenUnder50Lbs++;
+            return true;
+        });
+    }
+
+    private static void tryAddPedal(
+            PartyPools group,
+            List<PartyPools> out,
+            int remaining,
+            java.util.function.Function<PartyPools, Boolean> add) {
+        PartyPools next = copy(group);
+        if (!add.apply(next)) {
+            return;
+        }
+        buildPedalGroups(remaining - 1, next, out);
+    }
+
+    /** Youth = anyone not counted as an adult (all child/teen/weight boxes). */
+    private static boolean isValidPedalGroup(PartyPools group) {
+        int adults = group.adults;
+        int youth = group.total() - adults;
+        if (adults < 1 || adults > 3 || youth < 0 || youth > 3) {
+            return false;
+        }
+        int total = adults + youth;
+        if (total < 2 || total > 4) {
+            return false;
+        }
+        return switch (adults) {
+            case 3 -> youth == 0 || youth == 1;
+            case 2 -> youth == 0 || youth == 1 || youth == 2;
+            case 1 -> youth == 1 || youth == 2 || youth == 3;
+            default -> false;
+        };
+    }
+
     private static List<PartyPools> singlePatterns() {
         List<PartyPools> patterns = new ArrayList<>();
-        patterns.add(delta(1, 0, 0, 0, 0));
-        patterns.add(delta(0, 0, 0, 1, 0));
+        buildSingleGroups(1, new PartyPools(), patterns);
         return patterns;
+    }
+
+    private static void buildSingleGroups(int remaining, PartyPools group, List<PartyPools> out) {
+        if (remaining == 0) {
+            if (isValidSingleGroup(group)) {
+                out.add(copy(group));
+            }
+            return;
+        }
+        tryAddSingle(group, out, remaining, p -> {
+            p.adults++;
+            return true;
+        });
+        tryAddSingle(group, out, remaining, p -> {
+            p.childrenAge16to18++;
+            return true;
+        });
+    }
+
+    private static void tryAddSingle(
+            PartyPools group,
+            List<PartyPools> out,
+            int remaining,
+            java.util.function.Function<PartyPools, Boolean> add) {
+        PartyPools next = copy(group);
+        if (!add.apply(next)) {
+            return;
+        }
+        buildSingleGroups(remaining - 1, next, out);
+    }
+
+    private static boolean isValidSingleGroup(PartyPools group) {
+        if (group.total() != 1) {
+            return false;
+        }
+        if (group.childrenUnder16 > 0 || group.childrenUnder90Lbs > 0 || group.childrenUnder50Lbs > 0) {
+            return false;
+        }
+        return group.adults == 1 || group.childrenAge16to18 == 1;
     }
 
     private static List<PartyPools> tandemPatterns() {
         List<PartyPools> patterns = new ArrayList<>();
-        patterns.add(delta(2, 0, 0, 0, 0));
-        patterns.add(delta(0, 0, 0, 2, 0));
-        patterns.add(delta(1, 0, 0, 1, 0));
-        patterns.add(delta(1, 1, 0, 0, 0));
+        buildTandemGroups(2, new PartyPools(), patterns);
         return patterns;
+    }
+
+    private static void buildTandemGroups(int remaining, PartyPools group, List<PartyPools> out) {
+        if (remaining == 0) {
+            if (isValidTandemGroup(group)) {
+                out.add(copy(group));
+            }
+            return;
+        }
+        tryAddTandem(group, out, remaining, p -> {
+            p.adults++;
+            return true;
+        });
+        tryAddTandem(group, out, remaining, p -> {
+            p.childrenAge16to18++;
+            return true;
+        });
+        tryAddTandem(group, out, remaining, p -> {
+            p.childrenUnder16++;
+            return true;
+        });
+        tryAddTandem(group, out, remaining, p -> {
+            p.childrenUnder90Lbs++;
+            return true;
+        });
+        tryAddTandem(group, out, remaining, p -> {
+            p.childrenUnder50Lbs++;
+            return true;
+        });
+    }
+
+    private static void tryAddTandem(
+            PartyPools group,
+            List<PartyPools> out,
+            int remaining,
+            java.util.function.Function<PartyPools, Boolean> add) {
+        PartyPools next = copy(group);
+        if (!add.apply(next)) {
+            return;
+        }
+        buildTandemGroups(remaining - 1, next, out);
+    }
+
+    private static boolean isValidTandemGroup(PartyPools group) {
+        if (group.total() != 2) {
+            return false;
+        }
+        if (group.adults == 2) {
+            return true;
+        }
+        if (group.childrenAge16to18 == 2) {
+            return true;
+        }
+        return group.adults == 1;
     }
 
     private static List<PartyPools> multiPatterns(int seats) {
@@ -261,22 +417,13 @@ public final class PartyCompositionMatcher {
         return group.total() > 0;
     }
 
-    private static PartyPools delta(int adults, int under16, int under90, int teens, int under50) {
-        PartyPools pools = new PartyPools();
-        pools.adults = adults;
-        pools.childrenUnder16 = under16;
-        pools.childrenUnder90Lbs = under90;
-        pools.childrenAge16to18 = teens;
-        pools.childrenUnder50Lbs = under50;
-        return pools;
-    }
-
     private static PartyPools copy(PartyPools source) {
         return source.copy();
     }
 
     private enum BoatKind {
         CANOE,
+        PEDAL,
         SINGLE,
         TANDEM,
         MULTI
@@ -285,6 +432,9 @@ public final class PartyCompositionMatcher {
     private static BoatKind boatKind(String boatType) {
         if (boatType.startsWith("Canoe")) {
             return BoatKind.CANOE;
+        }
+        if (boatType.startsWith("Pedal")) {
+            return BoatKind.PEDAL;
         }
         if (boatType.startsWith("Double kayak")) {
             return BoatKind.TANDEM;

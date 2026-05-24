@@ -83,3 +83,23 @@ When boats are **returned**, the matcher runs in FIFO order. Earlier customers w
 - **Approve** — boats move to **Waitlisted** for that customer.
 - **Front desk** — use **Assign (waivers)** on waitlisted boats after paperwork.
 - **Remove** — customer no-show or left the list.
+
+## Waitlist boat assignment rules
+
+Party composition uses separate headcount boxes (each person in exactly one): **Adults (18+)**, **Under 16**, **16–18**, **Under 90 lbs**, **Under 50 lbs** (under-50 also counts toward canoe under-90 rules). The matcher assigns boats using the rules below. Edit `PartyCompositionMatcher.java` to change behavior.
+
+| Boat type | Max on one boat | Allowed configurations |
+|-----------|-----------------|------------------------|
+| **Canoe (2 person)** | 4 | **2 people:** two adults; two 16–18; or one adult with one other (under 16, 16–18, under 90 lbs, or under 50 lbs). **3 people:** at least one adult and at least one under 90 lbs (under-50 box counts). **4 people:** at least one adult, at least two under 50 lbs, plus anyone else. |
+| **Pedal boat (4 person)** | 4 | **Youth** = anyone not in the adult box (all child/teen/weight categories). Allowed adult + youth counts: **3+0**, **2+0**, **3+1**, **2+1**, **1+1**, **2+2**, **1+2**, **1+3**. |
+| **Kayak (1 person) / Stand-up paddleboard** | 1 | One adult **or** one 16–18 year old only (no younger children or weight-based categories). |
+| **Double kayak (2 person)** | 2 | Two adults; **or** two 16–18 year olds; **or** one adult with one other person (any category: second adult, under 16, 16–18, under 90 lbs, or under 50 lbs). |
+| **Other multi-seat types** | Per boat name | Adults and 16–18 may share; under 16 requires an adult on the boat; no mixing 16–18 with under 16; weight categories not used. |
+
+### Pedal boat quick reference
+
+| Adults | Youths allowed |
+|--------|----------------|
+| 3 | 0 or 1 |
+| 2 | 0, 1, or 2 |
+| 1 | 1, 2, or 3 |
