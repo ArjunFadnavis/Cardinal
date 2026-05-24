@@ -22,8 +22,10 @@
 /Users/arjunfadnavis/Desktop/Cardinal/src/main/java/com/park/boatrental/web/RentalController.java
 /Users/arjunfadnavis/Desktop/Cardinal/src/main/java/com/park/boatrental/dto/WaitlistEntryView.java
 /Users/arjunfadnavis/Desktop/Cardinal/src/main/java/com/park/boatrental/service/RentalService.java
+/Users/arjunfadnavis/Desktop/Cardinal/src/main/java/com/park/boatrental/waitlist/PartyPools.java
 /Users/arjunfadnavis/Desktop/Cardinal/src/main/java/com/park/boatrental/waitlist/RequirementJson.java
 /Users/arjunfadnavis/Desktop/Cardinal/src/main/java/com/park/boatrental/model/BoatStatus.java
+/Users/arjunfadnavis/Desktop/Cardinal/src/main/java/com/park/boatrental/waitlist/PartyCompositionMatcher.java
 /Users/arjunfadnavis/Desktop/Cardinal/src/main/java/com/park/boatrental/dto/WaitlistStateView.java
 /Users/arjunfadnavis/Desktop/Cardinal/src/main/java/com/park/boatrental/dto/WaitlistCreateRequest.java
 /Users/arjunfadnavis/Desktop/Cardinal/src/main/java/com/park/boatrental/waitlist/WaitlistStatus.java

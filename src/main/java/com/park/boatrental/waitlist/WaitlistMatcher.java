@@ -47,8 +47,7 @@ public final class WaitlistMatcher {
                 claimRecursive(child, available, claimed);
             }
         } else if (requirement instanceof RequirementNode.PartyReq party) {
-            List<Boat> eligible = eligibleForParty(party, available);
-            findMaxSubsetNotExceeding(eligible, party.partySize())
+            PartyCompositionMatcher.boatsClaimedWhenUnsatisfied(party, available)
                     .forEach(b -> claimed.add(b.getId()));
         }
     }
@@ -99,14 +98,7 @@ public final class WaitlistMatcher {
     }
 
     private static Optional<List<Boat>> matchParty(RequirementNode.PartyReq party, List<Boat> available) {
-        return findExactSeatCombination(eligibleForParty(party, available), party.partySize());
-    }
-
-    private static List<Boat> eligibleForParty(RequirementNode.PartyReq party, List<Boat> available) {
-        return available.stream()
-                .filter(b -> !party.excludeTypes().contains(b.getBoatType()))
-                .sorted(Comparator.comparing(Boat::getBoatNumber, BoatNumberComparator::compareNumbers))
-                .toList();
+        return PartyCompositionMatcher.tryMatch(party, available);
     }
 
     private static Optional<List<Boat>> findExactSeatCombination(List<Boat> boats, int targetSeats) {
@@ -247,7 +239,24 @@ public final class WaitlistMatcher {
                     .collect(Collectors.joining(" OR "));
         }
         if (requirement instanceof RequirementNode.PartyReq party) {
-            String base = "Anything for " + party.partySize();
+            PartyPools pools = PartyPools.from(party);
+            List<String> parts = new ArrayList<>();
+            if (pools.adults > 0) {
+                parts.add(pools.adults + " adult" + (pools.adults == 1 ? "" : "s"));
+            }
+            if (pools.childrenUnder16 > 0) {
+                parts.add(pools.childrenUnder16 + " child under 16 (by age)");
+            }
+            if (pools.childrenAge16to18 > 0) {
+                parts.add(pools.childrenAge16to18 + " age 16–18");
+            }
+            if (pools.childrenUnder90Lbs > 0) {
+                parts.add(pools.childrenUnder90Lbs + " child under 90 lbs (by weight)");
+            }
+            if (pools.childrenUnder50Lbs > 0) {
+                parts.add(pools.childrenUnder50Lbs + " child under 50 lbs (counts as under 90 for canoe)");
+            }
+            String base = "Party: " + String.join(", ", parts);
             if (party.excludeTypes().isEmpty()) {
                 return base;
             }

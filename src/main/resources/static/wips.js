@@ -115,11 +115,7 @@ function buildRequirement() {
         const excludeTypes = Array.from(
             document.querySelectorAll("#wips-exclude-types input:checked")
         ).map((cb) => cb.value);
-        return {
-            type: "PARTY",
-            partySize: parseInt(document.getElementById("wips-party-size").value, 10) || 1,
-            excludeTypes,
-        };
+        return buildPartyRequirement(excludeTypes);
     }
     if (mode === "advanced") {
         const root = document.querySelector("#wips-advanced-root > .wips-rule-group");
@@ -198,12 +194,93 @@ function addRuleBoat(container, preferredType) {
     container.appendChild(item);
 }
 
+function readPartyCount(id) {
+    return parseInt(document.getElementById(id).value, 10) || 0;
+}
+
+function buildPartyRequirement(excludeTypes) {
+    const composition = {
+        adults: readPartyCount("wips-party-adults"),
+        childrenUnder16: readPartyCount("wips-party-under16"),
+        childrenUnder90Lbs: readPartyCount("wips-party-under90"),
+        childrenAge16to18: readPartyCount("wips-party-16-18"),
+        childrenUnder50Lbs: readPartyCount("wips-party-under50"),
+    };
+    const partySize =
+        composition.adults +
+        composition.childrenUnder16 +
+        composition.childrenUnder90Lbs +
+        composition.childrenAge16to18 +
+        composition.childrenUnder50Lbs;
+    if (partySize < 1) {
+        throw new Error("Enter at least one person in the party");
+    }
+    return {
+        type: "PARTY",
+        partySize,
+        ...composition,
+        excludeTypes,
+    };
+}
+
+function applyPartyCompositionToElement(el, requirement) {
+    const set = (cls, value) => {
+        const input = el.querySelector(`.${cls}`);
+        if (input) input.value = value;
+    };
+    set("wips-party-adults", requirement.adults || 0);
+    set("wips-party-under16", requirement.childrenUnder16 || 0);
+    set("wips-party-under90", requirement.childrenUnder90Lbs || 0);
+    set("wips-party-16-18", requirement.childrenAge16to18 || 0);
+    set("wips-party-under50", requirement.childrenUnder50Lbs || 0);
+    if (requirement.partySize && !requirement.adults && !requirement.childrenUnder16) {
+        set("wips-party-adults", requirement.partySize);
+    }
+}
+
+function applyPartyCompositionToForm(requirement, prefix) {
+    const p = prefix || "wips-party";
+    const set = (suffix, value) => {
+        const el = document.getElementById(`${p}-${suffix}`);
+        if (el) el.value = value;
+    };
+    set("adults", requirement.adults || 0);
+    set("under16", requirement.childrenUnder16 || 0);
+    set("under90", requirement.childrenUnder90Lbs || 0);
+    set("16-18", requirement.childrenAge16to18 || 0);
+    set("under50", requirement.childrenUnder50Lbs || 0);
+    if (requirement.partySize && !requirement.adults && !requirement.childrenUnder16) {
+        set("adults", requirement.partySize);
+    }
+}
+
+function readPartyRequirementFromElement(el) {
+    const excludeTypes = Array.from(el.querySelectorAll(".wips-rule-party-exclude input:checked")).map(
+        (cb) => cb.value
+    );
+    const composition = {
+        adults: parseInt(el.querySelector(".wips-party-adults")?.value, 10) || 0,
+        childrenUnder16: parseInt(el.querySelector(".wips-party-under16")?.value, 10) || 0,
+        childrenUnder90Lbs: parseInt(el.querySelector(".wips-party-under90")?.value, 10) || 0,
+        childrenAge16to18: parseInt(el.querySelector(".wips-party-16-18")?.value, 10) || 0,
+        childrenUnder50Lbs: parseInt(el.querySelector(".wips-party-under50")?.value, 10) || 0,
+    };
+    const partySize = Object.values(composition).reduce((a, b) => a + b, 0);
+    return { type: "PARTY", partySize, ...composition, excludeTypes };
+}
+
 function createRuleParty() {
     const item = document.createElement("div");
     item.className = "wips-rule-item wips-rule-party";
     item.innerHTML = `
         <span class="wips-rule-kind">Party</span>
-        <label class="wips-qty-label">People <input type="number" class="wips-party-size-input" min="1" value="2"></label>
+        <div class="wips-party-grid wips-party-grid-compact">
+            <label>Adults (18+) <input type="number" class="wips-party-count wips-party-adults" min="0" value="0"></label>
+            <label>Child under 16 (age) <input type="number" class="wips-party-count wips-party-under16" min="0" value="0"></label>
+            <label>Age 16–18 <input type="number" class="wips-party-count wips-party-16-18" min="0" value="0"></label>
+            <label>Child under 90 lbs (weight) <input type="number" class="wips-party-count wips-party-under90" min="0" value="0"></label>
+            <label>Child under 50 lbs (weight) <input type="number" class="wips-party-count wips-party-under50" min="0" value="0"></label>
+        </div>
         <span class="wips-sub-label">Exclude types:</span>
         <div class="wips-rule-party-exclude wips-exclude-types"></div>
         <button type="button" class="btn btn-small btn-remove-row" data-rule-action="remove">Remove</button>
@@ -233,14 +310,7 @@ function serializeRuleItem(el) {
         };
     }
     if (el.classList.contains("wips-rule-party")) {
-        const excludeTypes = Array.from(el.querySelectorAll(".wips-rule-party-exclude input:checked")).map(
-            (cb) => cb.value
-        );
-        return {
-            type: "PARTY",
-            partySize: parseInt(el.querySelector(".wips-party-size-input").value, 10) || 1,
-            excludeTypes,
-        };
+        return readPartyRequirementFromElement(el);
     }
     if (el.classList.contains("wips-rule-group")) {
         return serializeRuleGroup(el);
@@ -297,7 +367,7 @@ function applyRequirementToForm(requirement) {
     if (requirement.type === "PARTY") {
         document.getElementById("wips-mode").value = "party";
         onWipsModeChange();
-        document.getElementById("wips-party-size").value = requirement.partySize;
+        applyPartyCompositionToForm(requirement, "wips-party");
         refreshExcludeCheckboxes(document.getElementById("wips-exclude-types"));
         const excluded = new Set(requirement.excludeTypes || []);
         document.querySelectorAll("#wips-exclude-types input").forEach((cb) => {
@@ -334,7 +404,7 @@ function appendRequirementNode(node, container) {
     }
     if (node.type === "PARTY") {
         const el = createRuleParty();
-        el.querySelector(".wips-party-size-input").value = node.partySize;
+        applyPartyCompositionToElement(el, node);
         const excluded = new Set(node.excludeTypes || []);
         el.querySelectorAll(".wips-rule-party-exclude input").forEach((cb) => {
             cb.checked = excluded.has(cb.value);
@@ -384,7 +454,7 @@ function resetWaitlistForm() {
     document.getElementById("wips-queue-number").value = "";
     document.getElementById("wips-mode").value = "single";
     document.getElementById("wips-single-qty").value = "1";
-    document.getElementById("wips-party-size").value = "2";
+    applyPartyCompositionToForm({ adults: 0, childrenUnder16: 0, childrenUnder90Lbs: 0, childrenAge16to18: 0, childrenUnder50Lbs: 0 }, "wips-party");
     document.getElementById("wips-rows").innerHTML = "";
     document.getElementById("wips-or-rows").innerHTML = "";
     document.getElementById("wips-advanced-root").innerHTML = "";

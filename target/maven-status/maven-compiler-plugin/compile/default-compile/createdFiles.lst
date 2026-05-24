@@ -18,6 +18,7 @@ com/park/boatrental/model/Boat.class
 com/park/boatrental/dto/WaitlistUpdateRequest.class
 com/park/boatrental/dto/WaitlistEntryView.class
 com/park/boatrental/waitlist/RequirementNode$AndReq.class
+com/park/boatrental/waitlist/PartyPools.class
 com/park/boatrental/waitlist/WaitlistMatcher.class
 com/park/boatrental/dto/ExportResult.class
 com/park/boatrental/service/DailyRentalNumberService.class
@@ -26,6 +27,8 @@ com/park/boatrental/util/BoatNumberComparator.class
 com/park/boatrental/repository/WaitlistEntryRepository.class
 com/park/boatrental/BoatRentalApplication.class
 com/park/boatrental/service/DailyRentalNumberService$Scope.class
+com/park/boatrental/waitlist/PartyCompositionMatcher.class
+com/park/boatrental/waitlist/PartyCompositionMatcher$BoatKind.class
 com/park/boatrental/util/BoatCapacity.class
 com/park/boatrental/web/ExportController.class
 com/park/boatrental/repository/BoatRepository.class

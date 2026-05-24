@@ -10,6 +10,7 @@ import com.park.boatrental.model.WaitlistEntry;
 import com.park.boatrental.repository.BoatRepository;
 import com.park.boatrental.repository.WaitlistEntryRepository;
 import com.park.boatrental.util.BoatNumberComparator;
+import com.park.boatrental.waitlist.PartyPools;
 import com.park.boatrental.waitlist.RequirementJson;
 import com.park.boatrental.waitlist.RequirementNode;
 import com.park.boatrental.waitlist.WaitlistMatcher;
@@ -277,8 +278,13 @@ public class WaitlistService {
             return;
         }
         if (requirement instanceof RequirementNode.PartyReq party) {
-            if (party.partySize() < 1) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Party size must be at least 1");
+            PartyPools pools = PartyPools.from(party);
+            if (pools.total() < 1) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Enter at least one person in the party");
+            }
+            if (!pools.isStructurallyValid()) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                        "Children need at least one adult in the party");
             }
         }
     }

@@ -55,7 +55,16 @@ public sealed interface RequirementNode permits RequirementNode.BoatReq, Require
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
-    record PartyReq(String type, int partySize, List<String> excludeTypes) implements RequirementNode {
+    record PartyReq(
+            String type,
+            Integer partySize,
+            int adults,
+            int childrenUnder16,
+            int childrenUnder90Lbs,
+            int childrenAge16to18,
+            int childrenUnder50Lbs,
+            List<String> excludeTypes) implements RequirementNode {
+
         public PartyReq {
             if (type == null) {
                 type = "PARTY";
@@ -63,6 +72,14 @@ public sealed interface RequirementNode permits RequirementNode.BoatReq, Require
             if (excludeTypes == null) {
                 excludeTypes = List.of();
             }
+        }
+
+        public int totalPeople() {
+            int total = adults + childrenUnder16 + childrenUnder90Lbs + childrenAge16to18 + childrenUnder50Lbs;
+            if (total > 0) {
+                return total;
+            }
+            return partySize != null ? partySize : 0;
         }
     }
 }

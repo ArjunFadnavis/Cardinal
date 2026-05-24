@@ -38,17 +38,14 @@ public class ExcelExportService {
     private static final DateTimeFormatter TIME_FMT = DateTimeFormatter.ofPattern("h:mm a");
 
     private final RentalRepository rentalRepository;
-    private final DailyRentalNumberService dailyRentalNumberService;
     private final Path exportPath;
     private final ZoneId zoneId;
 
     public ExcelExportService(
             RentalRepository rentalRepository,
-            DailyRentalNumberService dailyRentalNumberService,
             @Value("${boatrental.export.path}") String exportPath,
             @Value("${boatrental.timezone}") String timezone) {
         this.rentalRepository = rentalRepository;
-        this.dailyRentalNumberService = dailyRentalNumberService;
         this.exportPath = Path.of(exportPath);
         this.zoneId = ZoneId.of(timezone);
     }
@@ -85,7 +82,6 @@ public class ExcelExportService {
 
         Instant exportedAt = Instant.now();
         for (Rental rental : rentals) {
-            rental.setDailyRentalNumber(dailyRentalNumberService.numberForRental(rental));
             writeRentalRow(sheet.createRow(nextRowIndex++), rental);
             rental.setExportedAt(exportedAt);
         }
@@ -114,7 +110,7 @@ public class ExcelExportService {
         setCell(row, 2, assigned.format(DATE_FMT));
         setCell(row, 3, assigned.format(TIME_FMT));
         setCell(row, 4, returned.format(TIME_FMT));
-        setCell(row, 5, rental.getDailyRentalNumber());
+        setCell(row, 5, rental.getId().intValue());
     }
 
     private static void setCell(Row row, int column, String value) {

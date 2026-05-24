@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cardinal — Boat Rental</title>
-    <link rel="stylesheet" href="/styles.css?v=2">
+    <link rel="stylesheet" href="/styles.css?v=3">
 </head>
 <body>
     <header>
@@ -83,9 +83,14 @@
                 </div>
 
                 <div class="wips-mode-panel hidden" data-mode="party">
-                    <p class="hint">Match boats whose seats add up to exactly the party size (not over). Optionally exclude types.</p>
-                    <label for="wips-party-size">Party size (people)</label>
-                    <input id="wips-party-size" type="number" min="1" value="2" class="wips-input wips-qty-input">
+                    <p class="hint"><strong>Count each person in only one box.</strong> A 13-year-old at 150 lbs goes in <em>Child under 16 (age)</em> only. Anyone in <em>Child under 50 lbs</em> also counts toward the under-90 canoe rule (e.g. 2 adults + 1 under-50 = 3 on a canoe). Canoe: 4 if at least two are in the under-50 box.</p>
+                    <div class="wips-party-grid">
+                        <label>Adults (18+) <input id="wips-party-adults" type="number" min="0" value="0" class="wips-party-count"></label>
+                        <label>Child under 16 (age) <input id="wips-party-under16" type="number" min="0" value="0" class="wips-party-count"></label>
+                        <label>Age 16–18 <input id="wips-party-16-18" type="number" min="0" value="0" class="wips-party-count"></label>
+                        <label>Child under 90 lbs (weight) <input id="wips-party-under90" type="number" min="0" value="0" class="wips-party-count"></label>
+                        <label>Child under 50 lbs (weight) <input id="wips-party-under50" type="number" min="0" value="0" class="wips-party-count"></label>
+                    </div>
                     <p class="wips-sub-label">Do not use (check all that apply):</p>
                     <div id="wips-exclude-types" class="wips-exclude-types"></div>
                 </div>
@@ -111,7 +116,7 @@
 
     <div id="toast" class="toast hidden" role="status"></div>
 
-    <script src="/app.js?v=2"></script>
-    <script src="/wips.js?v=2"></script>
+    <script src="/app.js?v=3"></script>
+    <script src="/wips.js?v=3"></script>
 </body>
 </html>
