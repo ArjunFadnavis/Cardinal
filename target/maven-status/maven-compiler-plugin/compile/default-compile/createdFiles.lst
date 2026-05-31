@@ -4,6 +4,7 @@ com/park/boatrental/config/BoatStatusCheckMigration.class
 com/park/boatrental/model/BoatStatus.class
 com/park/boatrental/waitlist/RequirementNode.class
 com/park/boatrental/service/RentalService.class
+com/park/boatrental/config/StaticResourceConfig.class
 com/park/boatrental/waitlist/RequirementNode$PartyReq.class
 com/park/boatrental/model/Rental.class
 com/park/boatrental/dto/AssignRequest.class
