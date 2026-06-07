@@ -30,23 +30,32 @@ public class DailyRentalNumberService {
         this.scope = Scope.valueOf(scopeProperty.trim().toUpperCase());
     }
 
-    public int nextNumberForAssignment(Long boatId, Instant assignedAt) {
-        DayRange day = dayRange(assignedAt);
+    /** Next rental # for the day when the boat is sent out (checked out). */
+    public int nextNumberForCheckout(Long boatId, Instant sentAt) {
+        DayRange day = dayRange(sentAt);
         long existing = scope == Scope.PARK
-                ? rentalRepository.countByAssignedAtGreaterThanEqualAndAssignedAtLessThan(day.start(), day.end())
-                : rentalRepository.countByBoat_IdAndAssignedAtGreaterThanEqualAndAssignedAtLessThan(
+                ? rentalRepository.countBySentAtGreaterThanEqualAndSentAtLessThan(day.start(), day.end())
+                : rentalRepository.countByBoat_IdAndSentAtGreaterThanEqualAndSentAtLessThan(
                         boatId, day.start(), day.end());
         return (int) existing + 1;
     }
 
     public int numberForRental(Rental rental) {
-        DayRange day = dayRange(rental.getAssignedAt());
+        if (rental.getDailyRentalNumber() > 0) {
+            return rental.getDailyRentalNumber();
+        }
+        Instant checkout = checkoutInstant(rental);
+        DayRange day = dayRange(checkout);
         long position = scope == Scope.PARK
-                ? rentalRepository.countByAssignedAtGreaterThanEqualAndAssignedAtLessThanAndIdLessThanEqual(
+                ? rentalRepository.countBySentAtGreaterThanEqualAndSentAtLessThanAndIdLessThanEqual(
                         day.start(), day.end(), rental.getId())
-                : rentalRepository.countByBoat_IdAndAssignedAtGreaterThanEqualAndAssignedAtLessThanAndIdLessThanEqual(
+                : rentalRepository.countByBoat_IdAndSentAtGreaterThanEqualAndSentAtLessThanAndIdLessThanEqual(
                         rental.getBoat().getId(), day.start(), day.end(), rental.getId());
         return (int) position;
+    }
+
+    private Instant checkoutInstant(Rental rental) {
+        return rental.getSentAt() != null ? rental.getSentAt() : rental.getAssignedAt();
     }
 
     private DayRange dayRange(Instant instant) {

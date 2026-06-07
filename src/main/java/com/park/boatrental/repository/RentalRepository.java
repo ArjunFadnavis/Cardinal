@@ -27,6 +27,22 @@ public interface RentalRepository extends JpaRepository<Rental, Long> {
     long countByAssignedAtGreaterThanEqualAndAssignedAtLessThanAndIdLessThanEqual(
             Instant startInclusive, Instant endExclusive, Long id);
 
-    @Query("SELECT r FROM Rental r JOIN FETCH r.boat WHERE r.returnedAt IS NOT NULL AND r.exportedAt IS NULL ORDER BY r.returnedAt")
+    long countBySentAtGreaterThanEqualAndSentAtLessThan(
+            Instant startInclusive, Instant endExclusive);
+
+    long countByBoat_IdAndSentAtGreaterThanEqualAndSentAtLessThan(
+            Long boatId, Instant startInclusive, Instant endExclusive);
+
+    long countBySentAtGreaterThanEqualAndSentAtLessThanAndIdLessThanEqual(
+            Instant startInclusive, Instant endExclusive, Long id);
+
+    long countByBoat_IdAndSentAtGreaterThanEqualAndSentAtLessThanAndIdLessThanEqual(
+            Long boatId, Instant startInclusive, Instant endExclusive, Long id);
+
+    @Query("""
+            SELECT r FROM Rental r JOIN FETCH r.boat
+            WHERE r.returnedAt IS NOT NULL AND r.exportedAt IS NULL
+            ORDER BY COALESCE(r.sentAt, r.assignedAt), r.id
+            """)
     List<Rental> findCompletedNotExported();
 }

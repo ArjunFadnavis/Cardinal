@@ -38,14 +38,17 @@ public class ExcelExportService {
     private static final DateTimeFormatter TIME_FMT = DateTimeFormatter.ofPattern("h:mm a");
 
     private final RentalRepository rentalRepository;
+    private final DailyRentalNumberService dailyRentalNumberService;
     private final Path exportPath;
     private final ZoneId zoneId;
 
     public ExcelExportService(
             RentalRepository rentalRepository,
+            DailyRentalNumberService dailyRentalNumberService,
             @Value("${boatrental.export.path}") String exportPath,
             @Value("${boatrental.timezone}") String timezone) {
         this.rentalRepository = rentalRepository;
+        this.dailyRentalNumberService = dailyRentalNumberService;
         this.exportPath = Path.of(exportPath);
         this.zoneId = ZoneId.of(timezone);
     }
@@ -60,37 +63,35 @@ public class ExcelExportService {
         Files.createDirectories(exportPath.getParent());
 
         Workbook workbook;
-        Sheet sheet;
-        int nextRowIndex;
-
         if (Files.exists(exportPath)) {
             try (InputStream in = Files.newInputStream(exportPath)) {
                 workbook = new XSSFWorkbook(in);
             }
-            sheet = workbook.getSheetAt(0);
-            nextRowIndex = sheet.getLastRowNum() + 1;
-            if (nextRowIndex == 0 || sheet.getRow(0) == null) {
+        } else {
+            workbook = new XSSFWorkbook();
+        }
+
+        try {
+            Sheet sheet = workbook.getNumberOfSheets() > 0 ? workbook.getSheetAt(0) : workbook.createSheet("Rentals");
+            int nextRowIndex = sheet.getLastRowNum() + 1;
+            if (nextRowIndex == 0 || sheet.getRow(0) == null || !hasHeader(sheet.getRow(0))) {
                 writeHeader(sheet.createRow(0));
                 nextRowIndex = 1;
             }
-        } else {
-            workbook = new XSSFWorkbook();
-            sheet = workbook.createSheet("Rentals");
-            writeHeader(sheet.createRow(0));
-            nextRowIndex = 1;
-        }
 
-        Instant exportedAt = Instant.now();
-        for (Rental rental : rentals) {
-            writeRentalRow(sheet.createRow(nextRowIndex++), rental);
-            rental.setExportedAt(exportedAt);
-        }
-        rentalRepository.saveAll(rentals);
+            Instant exportedAt = Instant.now();
+            for (Rental rental : rentals) {
+                writeRentalRow(sheet.createRow(nextRowIndex++), rental);
+                rental.setExportedAt(exportedAt);
+            }
+            rentalRepository.saveAll(rentals);
 
-        try (OutputStream out = Files.newOutputStream(exportPath)) {
-            workbook.write(out);
+            try (OutputStream out = Files.newOutputStream(exportPath)) {
+                workbook.write(out);
+            }
+        } finally {
+            workbook.close();
         }
-        workbook.close();
 
         return new ExportResult(rentals.size(), exportPath.toAbsolutePath().toString());
     }
@@ -101,16 +102,22 @@ public class ExcelExportService {
         }
     }
 
+    private static boolean hasHeader(Row row) {
+        Cell first = row.getCell(0);
+        return first != null && "Renter name".equalsIgnoreCase(first.getStringCellValue().trim());
+    }
+
     private void writeRentalRow(Row row, Rental rental) {
-        var assigned = rental.getAssignedAt().atZone(zoneId);
+        Instant checkout = rental.getSentAt() != null ? rental.getSentAt() : rental.getAssignedAt();
+        var checkoutLocal = checkout.atZone(zoneId);
         var returned = rental.getReturnedAt().atZone(zoneId);
 
         setCell(row, 0, rental.getCustomerName());
         setCell(row, 1, rental.getBoat().getBoatNumber());
-        setCell(row, 2, assigned.format(DATE_FMT));
-        setCell(row, 3, assigned.format(TIME_FMT));
+        setCell(row, 2, checkoutLocal.format(DATE_FMT));
+        setCell(row, 3, checkoutLocal.format(TIME_FMT));
         setCell(row, 4, returned.format(TIME_FMT));
-        setCell(row, 5, rental.getId().intValue());
+        setCell(row, 5, dailyRentalNumberService.numberForRental(rental));
     }
 
     private static void setCell(Row row, int column, String value) {

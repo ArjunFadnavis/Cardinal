@@ -72,7 +72,6 @@ public class RentalService {
         rental.setBoat(boat);
         rental.setCustomerName(name);
         rental.setAssignedAt(now);
-        rental.setDailyRentalNumber(dailyRentalNumberService.nextNumberForAssignment(boat.getId(), now));
         rentalRepository.save(rental);
 
         boat.setStatus(BoatStatus.ASSIGNED);
@@ -96,7 +95,9 @@ public class RentalService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.CONFLICT,
                         "No active rental found for boat " + boat.getBoatNumber()));
 
-        rental.setSentAt(Instant.now());
+        Instant now = Instant.now();
+        rental.setSentAt(now);
+        rental.setDailyRentalNumber(dailyRentalNumberService.nextNumberForCheckout(boat.getId(), now));
         boat.setStatus(BoatStatus.OUT);
         rentalRepository.save(rental);
         boatRepository.save(boat);

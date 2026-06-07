@@ -81,10 +81,15 @@ public class DataSeeder implements ApplicationRunner {
                 rental.setCustomerName("Test customer " + boat.getBoatNumber());
                 rental.setAssignedAt(now);
                 rental.setSentAt(now);
-                rental.setDailyRentalNumber(dailyRentalNumberService.nextNumberForAssignment(boat.getId(), now));
+                rental.setDailyRentalNumber(dailyRentalNumberService.nextNumberForCheckout(boat.getId(), now));
                 rentalRepository.save(rental);
             } else if (rental.getSentAt() == null) {
                 rental.setSentAt(now);
+                rental.setDailyRentalNumber(dailyRentalNumberService.nextNumberForCheckout(boat.getId(), now));
+                rentalRepository.save(rental);
+            } else if (rental.getDailyRentalNumber() < 1) {
+                rental.setDailyRentalNumber(
+                        dailyRentalNumberService.nextNumberForCheckout(boat.getId(), rental.getSentAt()));
                 rentalRepository.save(rental);
             }
 
