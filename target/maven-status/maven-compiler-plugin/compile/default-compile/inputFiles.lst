@@ -9,6 +9,7 @@
 /Users/arjunfadnavis/Desktop/Cardinal/src/main/java/com/park/boatrental/dto/ExportResult.java
 /Users/arjunfadnavis/Desktop/Cardinal/src/main/java/com/park/boatrental/model/Boat.java
 /Users/arjunfadnavis/Desktop/Cardinal/src/main/java/com/park/boatrental/service/WaitlistService.java
+/Users/arjunfadnavis/Desktop/Cardinal/src/main/java/com/park/boatrental/dto/ReassignRequest.java
 /Users/arjunfadnavis/Desktop/Cardinal/src/main/java/com/park/boatrental/waitlist/WaitlistMatcher.java
 /Users/arjunfadnavis/Desktop/Cardinal/src/main/java/com/park/boatrental/util/BoatNumberComparator.java
 /Users/arjunfadnavis/Desktop/Cardinal/src/main/java/com/park/boatrental/dto/RentalView.java

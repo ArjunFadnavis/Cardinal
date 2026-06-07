@@ -2,6 +2,7 @@ package com.park.boatrental.service;
 
 import com.park.boatrental.dto.AssignRequest;
 import com.park.boatrental.dto.BoatView;
+import com.park.boatrental.dto.ReassignRequest;
 import com.park.boatrental.dto.RentalView;
 import com.park.boatrental.model.Boat;
 import com.park.boatrental.model.BoatStatus;
@@ -101,6 +102,50 @@ public class RentalService {
         boatRepository.save(boat);
 
         return toBoatView(boat, rental);
+    }
+
+    @Transactional
+    public BoatView reassign(String fromBoatNumber, ReassignRequest request) {
+        if (request.targetBoatNumber() == null || request.targetBoatNumber().trim().isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Target boat number is required");
+        }
+
+        Boat fromBoat = findBoat(fromBoatNumber);
+        if (fromBoat.getStatus() != BoatStatus.ASSIGNED) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "Only assigned boats (not yet sent out) can be reassigned (status: "
+                            + fromBoat.getStatus() + ")");
+        }
+
+        Boat toBoat = findBoat(request.targetBoatNumber());
+        if (fromBoat.getId().equals(toBoat.getId())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Choose a different boat");
+        }
+        if (toBoat.getStatus() != BoatStatus.AVAILABLE) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "Boat " + toBoat.getBoatNumber() + " is not available (status: " + toBoat.getStatus() + ")");
+        }
+        if (!fromBoat.getBoatType().equals(toBoat.getBoatType())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Reassign within the same boat type (" + fromBoat.getBoatType() + ")");
+        }
+
+        Rental rental = rentalRepository
+                .findFirstByBoat_IdAndReturnedAtIsNullOrderByAssignedAtDesc(fromBoat.getId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.CONFLICT,
+                        "No active rental found for boat " + fromBoat.getBoatNumber()));
+
+        rental.setBoat(toBoat);
+        fromBoat.setStatus(BoatStatus.AVAILABLE);
+        toBoat.setStatus(BoatStatus.ASSIGNED);
+
+        rentalRepository.save(rental);
+        boatRepository.save(fromBoat);
+        boatRepository.save(toBoat);
+
+        waitlistService.runMatcherAfterReturn();
+
+        return toBoatView(toBoat, rental);
     }
 
     @Transactional

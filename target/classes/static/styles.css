@@ -148,6 +148,13 @@ main {
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
 }
 
+.boat-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    align-items: stretch;
+}
+
 .boat-number {
     font-weight: 700;
     font-size: 1.15rem;
@@ -513,6 +520,16 @@ main {
     color: #fff;
 }
 
+.btn-reassign {
+    background: #e67e22;
+    color: #fff;
+}
+
+.btn-cancel {
+    background: #e9ecef;
+    color: #333;
+}
+
 .btn-export {
     background: #5a3d8a;
     color: #fff;
@@ -567,6 +584,69 @@ main {
 
 .toast.hidden {
     display: none;
+}
+
+.modal.hidden {
+    display: none;
+}
+
+.modal {
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+}
+
+.modal-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+}
+
+.modal-panel {
+    position: relative;
+    background: #fff;
+    color: #1a1a1a;
+    border-radius: 10px;
+    padding: 1.25rem;
+    width: min(100%, 22rem);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
+}
+
+.modal-title {
+    margin: 0 0 0.5rem;
+    font-size: 1.15rem;
+}
+
+.modal-desc {
+    margin: 0 0 1rem;
+    color: #555;
+    font-size: 0.95rem;
+}
+
+.modal-select {
+    width: 100%;
+    margin-top: 0.35rem;
+    padding: 0.55rem 0.65rem;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 1rem;
+}
+
+.modal-empty {
+    margin: 0.75rem 0 0;
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    margin-top: 1.25rem;
 }
 
 @media (min-width: 600px) {

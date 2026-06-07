@@ -2,6 +2,7 @@ package com.park.boatrental.web;
 
 import com.park.boatrental.dto.AssignRequest;
 import com.park.boatrental.dto.BoatView;
+import com.park.boatrental.dto.ReassignRequest;
 import com.park.boatrental.dto.RentalView;
 import com.park.boatrental.service.RentalService;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -41,6 +42,11 @@ public class RentalController {
     @PostMapping("/boats/{boatNumber}/send")
     public BoatView sendOut(@PathVariable String boatNumber) {
         return rentalService.sendOut(boatNumber);
+    }
+
+    @PostMapping("/boats/{boatNumber}/reassign")
+    public BoatView reassign(@PathVariable String boatNumber, @RequestBody ReassignRequest request) {
+        return rentalService.reassign(boatNumber, request);
     }
 
     @PostMapping("/boats/{boatNumber}/return")

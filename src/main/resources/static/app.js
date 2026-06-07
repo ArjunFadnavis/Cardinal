@@ -186,13 +186,21 @@ function renderBeach() {
         `;
 
         const actions = document.createElement("div");
+        actions.className = "boat-actions";
         if (boat.status === "ASSIGNED") {
-            const btn = document.createElement("button");
-            btn.type = "button";
-            btn.className = "btn btn-send";
-            btn.textContent = "Send out";
-            btn.addEventListener("click", () => sendBoat(boat.boatNumber));
-            actions.appendChild(btn);
+            const sendBtn = document.createElement("button");
+            sendBtn.type = "button";
+            sendBtn.className = "btn btn-send";
+            sendBtn.textContent = "Send out";
+            sendBtn.addEventListener("click", () => sendBoat(boat.boatNumber));
+            actions.appendChild(sendBtn);
+
+            const reassignBtn = document.createElement("button");
+            reassignBtn.type = "button";
+            reassignBtn.className = "btn btn-reassign";
+            reassignBtn.textContent = "Change boat";
+            reassignBtn.addEventListener("click", () => openReassignModal(boat));
+            actions.appendChild(reassignBtn);
         } else if (boat.status === "OUT") {
             const btn = document.createElement("button");
             btn.type = "button";
@@ -272,6 +280,81 @@ async function returnBoat(boatNumber) {
         showToast(err.message, true);
     }
 }
+
+const reassignModal = document.getElementById("reassign-modal");
+const reassignModalDesc = document.getElementById("reassign-modal-desc");
+const reassignTargetSelect = document.getElementById("reassign-target");
+const reassignEmpty = document.getElementById("reassign-empty");
+const reassignConfirmBtn = document.getElementById("reassign-confirm-btn");
+let reassignFromBoat = null;
+
+function availableReassignTargets(fromBoat) {
+    return boats.filter(
+        (b) =>
+            b.status === "AVAILABLE" &&
+            b.boatType === fromBoat.boatType &&
+            b.boatNumber !== fromBoat.boatNumber
+    );
+}
+
+function openReassignModal(boat) {
+    reassignFromBoat = boat;
+    const targets = availableReassignTargets(boat);
+    reassignModalDesc.textContent = `${boat.customerName || "Customer"} is on ${boat.boatNumber}. Pick another ${boat.boatType}.`;
+
+    reassignTargetSelect.innerHTML = "";
+    for (const target of targets) {
+        const option = document.createElement("option");
+        option.value = target.boatNumber;
+        option.textContent = target.boatNumber;
+        reassignTargetSelect.appendChild(option);
+    }
+
+    const hasTargets = targets.length > 0;
+    reassignTargetSelect.classList.toggle("hidden", !hasTargets);
+    reassignEmpty.classList.toggle("hidden", hasTargets);
+    reassignConfirmBtn.disabled = !hasTargets;
+
+    reassignModal.classList.remove("hidden");
+    if (hasTargets) {
+        reassignTargetSelect.focus();
+    }
+}
+
+function closeReassignModal() {
+    reassignModal.classList.add("hidden");
+    reassignFromBoat = null;
+}
+
+async function confirmReassign() {
+    if (!reassignFromBoat) {
+        return;
+    }
+    const targetBoatNumber = reassignTargetSelect.value;
+    if (!targetBoatNumber) {
+        showToast("Choose a boat", true);
+        return;
+    }
+    reassignConfirmBtn.disabled = true;
+    try {
+        await post(`/api/boats/${encodeURIComponent(reassignFromBoat.boatNumber)}/reassign`, {
+            targetBoatNumber,
+        });
+        showToast(`Moved ${reassignFromBoat.customerName} from ${reassignFromBoat.boatNumber} to ${targetBoatNumber}`);
+        closeReassignModal();
+        await refresh();
+    } catch (err) {
+        showToast(err.message, true);
+    } finally {
+        reassignConfirmBtn.disabled = false;
+    }
+}
+
+document.getElementById("reassign-cancel-btn").addEventListener("click", closeReassignModal);
+reassignConfirmBtn.addEventListener("click", confirmReassign);
+reassignModal.querySelectorAll("[data-close-reassign]").forEach((el) => {
+    el.addEventListener("click", closeReassignModal);
+});
 
 function startPolling() {
     refresh();
