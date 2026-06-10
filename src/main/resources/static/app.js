@@ -83,6 +83,7 @@ function statusLabel(status) {
     if (status === "WAITLISTED") return "Waitlisted";
     if (status === "ASSIGNED") return "Assigned";
     if (status === "OUT") return "Out";
+    if (status === "OUT_OF_SERVICE") return "Out of service";
     return status;
 }
 
@@ -91,6 +92,7 @@ function statusClass(status) {
     if (status === "WAITLISTED") return "status-waitlisted";
     if (status === "ASSIGNED") return "status-assigned";
     if (status === "OUT") return "status-out";
+    if (status === "OUT_OF_SERVICE") return "status-out-of-service";
     return "";
 }
 
@@ -148,18 +150,34 @@ function renderDesk() {
         `;
 
         const actions = document.createElement("div");
+        actions.className = "boat-actions";
         if (boat.status === "AVAILABLE" || boat.status === "WAITLISTED") {
-            const btn = document.createElement("button");
-            btn.type = "button";
-            btn.className = "btn btn-assign";
-            btn.textContent = boat.status === "WAITLISTED" ? "Assign (waivers)" : "Assign";
-            btn.addEventListener("click", () => {
+            const assignBtn = document.createElement("button");
+            assignBtn.type = "button";
+            assignBtn.className = "btn btn-assign";
+            assignBtn.textContent = boat.status === "WAITLISTED" ? "Assign (waivers)" : "Assign";
+            assignBtn.addEventListener("click", () => {
                 if (boat.customerName) {
                     customerInput.value = boat.customerName;
                 }
                 assignBoat(boat.boatNumber);
             });
-            actions.appendChild(btn);
+            actions.appendChild(assignBtn);
+        }
+        if (boat.status === "AVAILABLE") {
+            const oosBtn = document.createElement("button");
+            oosBtn.type = "button";
+            oosBtn.className = "btn btn-out-of-service";
+            oosBtn.textContent = "Out of service";
+            oosBtn.addEventListener("click", () => markOutOfService(boat.boatNumber));
+            actions.appendChild(oosBtn);
+        } else if (boat.status === "OUT_OF_SERVICE") {
+            const rtsBtn = document.createElement("button");
+            rtsBtn.type = "button";
+            rtsBtn.className = "btn btn-return-to-service";
+            rtsBtn.textContent = "Return to service";
+            rtsBtn.addEventListener("click", () => returnToService(boat.boatNumber));
+            actions.appendChild(rtsBtn);
         }
         row.appendChild(actions);
         return row;
@@ -275,6 +293,26 @@ async function returnBoat(boatNumber) {
     try {
         await post(`/api/boats/${encodeURIComponent(boatNumber)}/return`);
         showToast(`${boatNumber} is back and available`);
+        await refresh();
+    } catch (err) {
+        showToast(err.message, true);
+    }
+}
+
+async function markOutOfService(boatNumber) {
+    try {
+        await post(`/api/boats/${encodeURIComponent(boatNumber)}/out-of-service`);
+        showToast(`${boatNumber} marked out of service`);
+        await refresh();
+    } catch (err) {
+        showToast(err.message, true);
+    }
+}
+
+async function returnToService(boatNumber) {
+    try {
+        await post(`/api/boats/${encodeURIComponent(boatNumber)}/return-to-service`);
+        showToast(`${boatNumber} is available again`);
         await refresh();
     } catch (err) {
         showToast(err.message, true);

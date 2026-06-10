@@ -4,5 +4,6 @@ public enum BoatStatus {
     AVAILABLE,
     WAITLISTED,
     ASSIGNED,
-    OUT
+    OUT,
+    OUT_OF_SERVICE
 }

@@ -198,6 +198,11 @@ main {
     color: #5b2c6f;
 }
 
+.status-out-of-service {
+    background: #e9ecef;
+    color: #495057;
+}
+
 .hidden {
     display: none !important;
 }
@@ -522,6 +527,16 @@ main {
 
 .btn-reassign {
     background: #e67e22;
+    color: #fff;
+}
+
+.btn-out-of-service {
+    background: #6c757d;
+    color: #fff;
+}
+
+.btn-return-to-service {
+    background: #17a2b8;
     color: #fff;
 }
 

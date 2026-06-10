@@ -4,11 +4,14 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
 /**
- * SQLite CHECK constraints are not updated by Hibernate ddl-auto. Older databases
- * only allowed AVAILABLE, ASSIGNED, OUT; approve waitlist needs WAITLISTED.
+ * SQLite CHECK constraints are not updated by Hibernate ddl-auto. Recreates {@code boats}
+ * when the status CHECK constraint is missing allowed values (e.g. WAITLISTED, OUT_OF_SERVICE).
  */
 @Component
 public class BoatStatusCheckMigration {
+
+    private static final String ALLOWED_STATUSES =
+            "'AVAILABLE','WAITLISTED','ASSIGNED','OUT','OUT_OF_SERVICE'";
 
     public BoatStatusCheckMigration(JdbcTemplate jdbc) {
         if (!needsMigration(jdbc)) {
@@ -25,11 +28,11 @@ public class BoatStatusCheckMigration {
                         id integer NOT NULL,
                         boat_number varchar(255) NOT NULL UNIQUE,
                         boat_type varchar(255) NOT NULL,
-                        status varchar(255) NOT NULL CHECK (status IN ('AVAILABLE','ASSIGNED','OUT','WAITLISTED')),
+                        status varchar(255) NOT NULL CHECK (status IN (%s)),
                         waitlist_entry_id bigint,
                         PRIMARY KEY (id)
                     )
-                    """);
+                    """.formatted(ALLOWED_STATUSES));
             jdbc.execute("""
                     INSERT INTO boats_migrated (id, boat_number, boat_type, status, waitlist_entry_id)
                     SELECT id, boat_number, boat_type, status, waitlist_entry_id FROM boats
@@ -45,6 +48,6 @@ public class BoatStatusCheckMigration {
         String ddl = jdbc.queryForObject(
                 "SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'boats'",
                 String.class);
-        return ddl != null && !ddl.contains("WAITLISTED");
+        return ddl != null && !ddl.contains("OUT_OF_SERVICE");
     }
 }

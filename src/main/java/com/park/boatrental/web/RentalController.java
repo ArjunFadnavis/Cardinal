@@ -53,4 +53,14 @@ public class RentalController {
     public BoatView returnBoat(@PathVariable String boatNumber) {
         return rentalService.returnBoat(boatNumber);
     }
+
+    @PostMapping("/boats/{boatNumber}/out-of-service")
+    public BoatView markOutOfService(@PathVariable String boatNumber) {
+        return rentalService.markOutOfService(boatNumber);
+    }
+
+    @PostMapping("/boats/{boatNumber}/return-to-service")
+    public BoatView returnToService(@PathVariable String boatNumber) {
+        return rentalService.returnToService(boatNumber);
+    }
 }

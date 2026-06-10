@@ -173,6 +173,32 @@ public class RentalService {
         return toBoatView(boat, null);
     }
 
+    @Transactional
+    public BoatView markOutOfService(String boatNumber) {
+        Boat boat = findBoat(boatNumber);
+        if (boat.getStatus() != BoatStatus.AVAILABLE) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "Only available boats can be marked out of service (status: " + boat.getStatus() + ")");
+        }
+        boat.setStatus(BoatStatus.OUT_OF_SERVICE);
+        boatRepository.save(boat);
+        waitlistService.runMatcherAfterReturn();
+        return toBoatView(boat, null);
+    }
+
+    @Transactional
+    public BoatView returnToService(String boatNumber) {
+        Boat boat = findBoat(boatNumber);
+        if (boat.getStatus() != BoatStatus.OUT_OF_SERVICE) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "Only out-of-service boats can be returned to the fleet (status: " + boat.getStatus() + ")");
+        }
+        boat.setStatus(BoatStatus.AVAILABLE);
+        boatRepository.save(boat);
+        waitlistService.runMatcherAfterReturn();
+        return toBoatView(boat, null);
+    }
+
     @Transactional(readOnly = true)
     public List<RentalView> listActiveRentals() {
         return rentalRepository.findAllActive().stream()
