@@ -80,16 +80,18 @@ public class DataSeeder implements ApplicationRunner {
                 rental.setBoat(boat);
                 rental.setCustomerName("Test customer " + boat.getBoatNumber());
                 rental.setAssignedAt(now);
+                rental.setDailyRentalNumber(
+                        dailyRentalNumberService.nextNumberForCheckout(boat.getId(), now, null));
                 rental.setSentAt(now);
-                rental.setDailyRentalNumber(dailyRentalNumberService.nextNumberForCheckout(boat.getId(), now));
                 rentalRepository.save(rental);
             } else if (rental.getSentAt() == null) {
+                rental.setDailyRentalNumber(
+                        dailyRentalNumberService.nextNumberForCheckout(boat.getId(), now, rental.getId()));
                 rental.setSentAt(now);
-                rental.setDailyRentalNumber(dailyRentalNumberService.nextNumberForCheckout(boat.getId(), now));
                 rentalRepository.save(rental);
             } else if (rental.getDailyRentalNumber() < 1) {
-                rental.setDailyRentalNumber(
-                        dailyRentalNumberService.nextNumberForCheckout(boat.getId(), rental.getSentAt()));
+                rental.setDailyRentalNumber(dailyRentalNumberService.nextNumberForCheckout(
+                        boat.getId(), rental.getSentAt(), rental.getId()));
                 rentalRepository.save(rental);
             }
 

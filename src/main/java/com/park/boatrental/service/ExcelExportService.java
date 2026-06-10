@@ -108,14 +108,13 @@ public class ExcelExportService {
     }
 
     private void writeRentalRow(Row row, Rental rental) {
-        Instant checkout = rental.getSentAt() != null ? rental.getSentAt() : rental.getAssignedAt();
-        var checkoutLocal = checkout.atZone(zoneId);
+        var assigned = rental.getAssignedAt().atZone(zoneId);
         var returned = rental.getReturnedAt().atZone(zoneId);
 
         setCell(row, 0, rental.getCustomerName());
         setCell(row, 1, rental.getBoat().getBoatNumber());
-        setCell(row, 2, checkoutLocal.format(DATE_FMT));
-        setCell(row, 3, checkoutLocal.format(TIME_FMT));
+        setCell(row, 2, assigned.format(DATE_FMT));
+        setCell(row, 3, assigned.format(TIME_FMT));
         setCell(row, 4, returned.format(TIME_FMT));
         setCell(row, 5, dailyRentalNumberService.numberForRental(rental));
     }

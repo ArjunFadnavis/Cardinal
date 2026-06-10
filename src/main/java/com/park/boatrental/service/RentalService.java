@@ -96,8 +96,9 @@ public class RentalService {
                         "No active rental found for boat " + boat.getBoatNumber()));
 
         Instant now = Instant.now();
+        rental.setDailyRentalNumber(
+                dailyRentalNumberService.nextNumberForCheckout(boat.getId(), now, rental.getId()));
         rental.setSentAt(now);
-        rental.setDailyRentalNumber(dailyRentalNumberService.nextNumberForCheckout(boat.getId(), now));
         boat.setStatus(BoatStatus.OUT);
         rentalRepository.save(rental);
         boatRepository.save(boat);
@@ -136,6 +137,7 @@ public class RentalService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.CONFLICT,
                         "No active rental found for boat " + fromBoat.getBoatNumber()));
 
+        // Keep assignedAt (and sentAt if ever set) — only the boat changes before send-out.
         rental.setBoat(toBoat);
         fromBoat.setStatus(BoatStatus.AVAILABLE);
         toBoat.setStatus(BoatStatus.ASSIGNED);

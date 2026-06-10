@@ -32,11 +32,19 @@ public class DailyRentalNumberService {
 
     /** Next rental # for the day when the boat is sent out (checked out). */
     public int nextNumberForCheckout(Long boatId, Instant sentAt) {
+        return nextNumberForCheckout(boatId, sentAt, null);
+    }
+
+    /**
+     * @param excludeRentalId pass the rental being sent so a pending {@code sentAt} flush
+     *                        does not count this trip twice
+     */
+    public int nextNumberForCheckout(Long boatId, Instant sentAt, Long excludeRentalId) {
         DayRange day = dayRange(sentAt);
         long existing = scope == Scope.PARK
-                ? rentalRepository.countBySentAtGreaterThanEqualAndSentAtLessThan(day.start(), day.end())
-                : rentalRepository.countByBoat_IdAndSentAtGreaterThanEqualAndSentAtLessThan(
-                        boatId, day.start(), day.end());
+                ? rentalRepository.countSentOutInDayExcludingId(day.start(), day.end(), excludeRentalId)
+                : rentalRepository.countSentOutInDayForBoatExcludingId(
+                        boatId, day.start(), day.end(), excludeRentalId);
         return (int) existing + 1;
     }
 
