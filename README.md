@@ -93,4 +93,7 @@ Party composition uses separate headcount boxes (each person in exactly one): **
 | 2 | 0, 1, or 2 |
 | 1 | 1, 2, or 3 |
 ### POST SEASON CLEANUP
-In order to ensure that the sqlite database does not get to big, at the end of the season, delete that file  (Everything should be backed up to the excel).  In the next season(Unless the codebase is modified), staff will need to re-add everything past the original 10 canoes, 19 singles, 4 pedal boats, 9 tandems, and 7 stand ups
+In order to ensure that the sqlite database does not get to big, at the end of the season, delete that file  (Everything should be backed up to the excel).  In the next season(Unless the codebase is modified), staff will need to re-add everything past the original 10 canoes, 19 singles, 4 pedal boats, 9 tandems, and 7 stand ups.  This file can be deleted by removing the two colons before the line del data\boatrental.db, and double clicking the file.  After deleting the file, make sure to add the two colons back
+
+### Writeup
+A writeup with screenshots is here: https://docs.google.com/document/d/17CKr-lXI5lGvKcVre0oe6H9HeFLtDg5TAx5ipxTnRrY/edit?usp=sharing
