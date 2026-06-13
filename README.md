@@ -21,23 +21,12 @@ Simple local boat rental tracker for front desk and beach. One Spring Boot app o
 5. **End of day** — On the front desk tab, click **Append to Excel** to add completed rentals to `exports/rental-log.xlsx`.
 
 Both screens refresh automatically every 3 seconds.
-
+## Fleet modification
+Boats can be added, or marked out of service.  These modifications are stored in the sqlite database, so it is essential that this database is not deleted prematurely, or else all modifications to the original fleet will be undone, and staff will need to re-mark boats as out of service, or re-add boats that are not in the original fleet as described above.  Permenantly adding boats will require code modification.  Anybody who is crazy enough to mess with the codebase can do so at their own risk
 ## Requirements
 
 - Java 17+
-- Maven (`mvn`)
 
-## Run
-
-```bash
-cd /path/to/BR
-mvn spring-boot:run
-```
-
-- Front desk: http://localhost:8080
-- iPad (same network): http://&lt;front-desk-computer-ip&gt;:8080
-
-The SQLite database is at `./data/boatrental.db`. Excel log at `./exports/rental-log.xlsx`.
 
 ## Reset boats / database
 
@@ -103,3 +92,5 @@ Party composition uses separate headcount boxes (each person in exactly one): **
 | 3 | 0 or 1 |
 | 2 | 0, 1, or 2 |
 | 1 | 1, 2, or 3 |
+### POST SEASON CLEANUP
+In order to ensure that the sqlite database does not get to big, at the end of the season, delete that file  (Everything should be backed up to the excel).  In the next season(Unless the codebase is modified), staff will need to re-add everything past the original 10 canoes, 19 singles, 4 pedal boats, 9 tandems, and 7 stand ups
