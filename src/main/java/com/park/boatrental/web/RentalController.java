@@ -1,5 +1,6 @@
 package com.park.boatrental.web;
 
+import com.park.boatrental.dto.AddBoatRequest;
 import com.park.boatrental.dto.AssignRequest;
 import com.park.boatrental.dto.BoatView;
 import com.park.boatrental.dto.ReassignRequest;
@@ -27,6 +28,11 @@ public class RentalController {
     @GetMapping("/boats")
     public List<BoatView> listBoats() {
         return rentalService.listBoats();
+    }
+
+    @PostMapping("/boats")
+    public BoatView addBoat(@RequestBody AddBoatRequest request) {
+        return rentalService.addBoat(request);
     }
 
     @GetMapping("/rentals/active")

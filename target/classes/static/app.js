@@ -22,6 +22,7 @@ function setView(view) {
     });
     document.getElementById("desk-view").classList.toggle("active", view === "desk");
     document.getElementById("beach-view").classList.toggle("active", view === "beach");
+    document.getElementById("fleet-view").classList.toggle("active", view === "fleet");
     document.getElementById("wips-view").classList.toggle("active", view === "wips");
     if (view === "wips" && typeof refreshWips === "function") {
         refreshWips();
@@ -105,6 +106,56 @@ function groupByType(boatList) {
         groups.get(boat.boatType).push(boat);
     }
     return groups;
+}
+
+function distinctBoatTypes() {
+    return [...new Set(boats.map((b) => b.boatType))].sort((a, b) =>
+        a.localeCompare(b, undefined, { sensitivity: "base" })
+    );
+}
+
+function refreshAddBoatTypeSelect() {
+    const select = document.getElementById("add-boat-type");
+    if (!select) {
+        return;
+    }
+    const previous = select.value;
+    const types = distinctBoatTypes();
+    select.innerHTML = "";
+    for (const type of types) {
+        const opt = document.createElement("option");
+        opt.value = type;
+        opt.textContent = type;
+        select.appendChild(opt);
+    }
+    if (previous && types.includes(previous)) {
+        select.value = previous;
+    }
+    syncFleetBoatTypeFromNumber();
+}
+
+function boatTypeForNumber(boatNumber) {
+    const prefix = boatNumber.trim().charAt(0).toUpperCase();
+    const byPrefix = {
+        C: "Canoe (2 person)",
+        S: "Kayak (1 person)",
+        P: "Pedal boat (4 person)",
+        T: "Double kayak (2 person)",
+        U: "Stand-up paddleboard (1 person)",
+    };
+    return byPrefix[prefix] || null;
+}
+
+function syncFleetBoatTypeFromNumber() {
+    const numberInput = document.getElementById("add-boat-number");
+    const typeSelect = document.getElementById("add-boat-type");
+    if (!numberInput || !typeSelect || !numberInput.value.trim()) {
+        return;
+    }
+    const inferred = boatTypeForNumber(numberInput.value);
+    if (inferred && [...typeSelect.options].some((o) => o.value === inferred)) {
+        typeSelect.value = inferred;
+    }
 }
 
 function renderBoatGroups(container, boatList, rowBuilder) {
@@ -249,6 +300,7 @@ async function refresh() {
         boats = await fetchBoats();
         connectionStatus.textContent = "Connected";
         lastUpdated.textContent = "Updated " + formatTime(new Date());
+        refreshAddBoatTypeSelect();
         render();
         if (typeof refreshWips === "function") {
             await refreshWips();
@@ -314,6 +366,31 @@ async function returnToService(boatNumber) {
         await post(`/api/boats/${encodeURIComponent(boatNumber)}/return-to-service`);
         showToast(`${boatNumber} is available again`);
         await refresh();
+    } catch (err) {
+        showToast(err.message, true);
+    }
+}
+
+async function addBoatToFleet() {
+    const numberInput = document.getElementById("add-boat-number");
+    const typeSelect = document.getElementById("add-boat-type");
+    const boatNumber = numberInput.value.trim();
+    const boatType = typeSelect.value;
+    if (!boatNumber) {
+        showToast("Enter a boat number", true);
+        numberInput.focus();
+        return;
+    }
+    if (!boatType) {
+        showToast("Choose a boat type", true);
+        return;
+    }
+    try {
+        await post("/api/boats", { boatNumber, boatType });
+        numberInput.value = "";
+        showToast(`Added ${boatNumber} (${boatType})`);
+        await refresh();
+        numberInput.focus();
     } catch (err) {
         showToast(err.message, true);
     }
@@ -402,6 +479,9 @@ function startPolling() {
 
 const exportBtn = document.getElementById("export-excel-btn");
 const exportResult = document.getElementById("export-result");
+const addBoatBtn = document.getElementById("add-boat-btn");
+addBoatBtn?.addEventListener("click", addBoatToFleet);
+document.getElementById("add-boat-number")?.addEventListener("input", syncFleetBoatTypeFromNumber);
 
 exportBtn.addEventListener("click", async () => {
     exportBtn.disabled = true;

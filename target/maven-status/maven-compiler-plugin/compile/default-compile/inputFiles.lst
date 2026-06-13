@@ -20,6 +20,7 @@
 /Users/arjunfadnavis/Desktop/Cardinal/src/main/java/com/park/boatrental/repository/WaitlistEntryRepository.java
 /Users/arjunfadnavis/Desktop/Cardinal/src/main/java/com/park/boatrental/util/BoatCapacity.java
 /Users/arjunfadnavis/Desktop/Cardinal/src/main/java/com/park/boatrental/web/ExportController.java
+/Users/arjunfadnavis/Desktop/Cardinal/src/main/java/com/park/boatrental/dto/AddBoatRequest.java
 /Users/arjunfadnavis/Desktop/Cardinal/src/main/java/com/park/boatrental/web/RentalController.java
 /Users/arjunfadnavis/Desktop/Cardinal/src/main/java/com/park/boatrental/dto/WaitlistEntryView.java
 /Users/arjunfadnavis/Desktop/Cardinal/src/main/java/com/park/boatrental/service/RentalService.java

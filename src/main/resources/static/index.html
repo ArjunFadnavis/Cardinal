@@ -18,6 +18,7 @@
         <nav>
             <button type="button" class="tab active" data-view="desk">Front desk</button>
             <button type="button" class="tab" data-view="beach">Beach</button>
+            <button type="button" class="tab" data-view="fleet">Fleet</button>
             <button type="button" class="tab" data-view="wips">WIPS</button>
         </nav>
         <p class="status-line">
@@ -44,6 +45,18 @@
         <section id="beach-view" class="view">
             <p class="hint">Assigned — send out when the customer is ready, or change boat if needed. Out — mark returned when they’re back.</p>
             <div id="beach-boat-list" class="boat-list"></div>
+        </section>
+
+        <section id="fleet-view" class="view">
+            <div class="panel">
+                <h2 class="panel-title">Add boat</h2>
+                <p class="hint">Add a new boat number to the fleet. To take a boat out of rotation, use <strong>Out of service</strong> on the Front desk tab.</p>
+                <label for="add-boat-number">Boat number</label>
+                <input id="add-boat-number" type="text" placeholder="e.g. C11 or S20" autocomplete="off">
+                <label for="add-boat-type">Boat type</label>
+                <select id="add-boat-type"></select>
+                <button type="button" id="add-boat-btn" class="btn btn-assign">Add boat</button>
+            </div>
         </section>
 
         <section id="wips-view" class="view">
@@ -134,7 +147,7 @@
         </div>
     </div>
 
-    <script src="/app.js?v=5"></script>
+    <script src="/app.js?v=6"></script>
     <script src="/wips.js?v=3"></script>
 </body>
 </html>

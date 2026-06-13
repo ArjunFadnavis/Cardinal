@@ -38,5 +38,6 @@ com/park/boatrental/util/BoatNumberComparator.class
 com/park/boatrental/waitlist/PartyCompositionMatcher.class
 com/park/boatrental/waitlist/PartyCompositionMatcher$BoatKind.class
 com/park/boatrental/util/BoatCapacity.class
+com/park/boatrental/dto/AddBoatRequest.class
 com/park/boatrental/service/ExcelExportService.class
 com/park/boatrental/web/WaitlistController.class

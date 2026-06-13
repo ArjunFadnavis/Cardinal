@@ -1,5 +1,6 @@
 package com.park.boatrental.service;
 
+import com.park.boatrental.dto.AddBoatRequest;
 import com.park.boatrental.dto.AssignRequest;
 import com.park.boatrental.dto.BoatView;
 import com.park.boatrental.dto.ReassignRequest;
@@ -55,6 +56,30 @@ public class RentalService {
                 .sorted(BoatNumberComparator.INSTANCE)
                 .map(boat -> toBoatView(boat, activeByBoatId.get(boat.getId())))
                 .toList();
+    }
+
+    @Transactional
+    public BoatView addBoat(AddBoatRequest request) {
+        String boatNumber = normalizeBoatNumber(request.boatNumber());
+        String boatType = normalizeBoatType(request.boatType());
+
+        if (boatRepository.findByBoatNumberIgnoreCase(boatNumber).isPresent()) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "Boat " + boatNumber + " already exists");
+        }
+        if (!boatRepository.findAllDistinctBoatTypes().contains(boatType)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Choose a boat type already used in the fleet");
+        }
+
+        Boat boat = new Boat();
+        boat.setBoatNumber(boatNumber);
+        boat.setBoatType(boatType);
+        boat.setStatus(BoatStatus.AVAILABLE);
+        boatRepository.save(boat);
+
+        waitlistService.runMatcherAfterReturn();
+        return toBoatView(boat, null);
     }
 
     @Transactional
@@ -221,6 +246,20 @@ public class RentalService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Customer name is required");
         }
         return name.trim();
+    }
+
+    private static String normalizeBoatNumber(String boatNumber) {
+        if (boatNumber == null || boatNumber.trim().isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Boat number is required");
+        }
+        return boatNumber.trim();
+    }
+
+    private static String normalizeBoatType(String boatType) {
+        if (boatType == null || boatType.trim().isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Boat type is required");
+        }
+        return boatType.trim();
     }
 
     private BoatView toBoatView(Boat boat, Rental activeRental) {
