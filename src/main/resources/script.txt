@@ -5,7 +5,7 @@ taskkill /F /IM java.exe >nul 2>&1
 
 cd Cardinal
 
-del data\boatrental.db
+:: del data\boatrental.db
 
 for /f "tokens=2 delims=:" %%f in ('ipconfig ^| findstr /c:"IPv4 Address"') do (
     set IP=%%f
