@@ -1,4 +1,4 @@
-i# Boat Rental (local)
+# Boat Rental (local)
 
 Simple local boat rental tracker for front desk and beach. One Spring Boot app on the front-desk computer; iPad opens the same URL on your Wi‑Fi.
 
