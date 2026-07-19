@@ -1,3 +1,5 @@
 # SQLite database (customer PII — do not commit)
 data/
 *.db
+target/*
+!target/Cardinal.jar
