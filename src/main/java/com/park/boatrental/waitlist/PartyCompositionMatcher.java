@@ -57,11 +57,17 @@ public final class PartyCompositionMatcher {
                 break;
             }
             for (PartyPools delta : patternsFor(boat)) {
-                if (pools.canSubtract(delta)) {
-                    pools.subtract(delta);
-                    claimed.add(boat);
-                    break;
+                if (!pools.canSubtract(delta)) {
+                    continue;
                 }
+                PartyPools remainder = pools.copy();
+                remainder.subtract(delta);
+                if (!remainder.isEmpty() && !remainder.isStructurallyValid()) {
+                    continue;
+                }
+                pools.subtract(delta);
+                claimed.add(boat);
+                break;
             }
         }
         return claimed;

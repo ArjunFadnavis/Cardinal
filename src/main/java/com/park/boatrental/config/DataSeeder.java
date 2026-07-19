@@ -6,6 +6,7 @@ import com.park.boatrental.model.Rental;
 import com.park.boatrental.repository.BoatRepository;
 import com.park.boatrental.repository.RentalRepository;
 import com.park.boatrental.service.DailyRentalNumberService;
+import com.park.boatrental.service.WaitlistService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
@@ -21,16 +22,19 @@ public class DataSeeder implements ApplicationRunner {
     private final BoatRepository boatRepository;
     private final RentalRepository rentalRepository;
     private final DailyRentalNumberService dailyRentalNumberService;
+    private final WaitlistService waitlistService;
     private final String startupMode;
 
     public DataSeeder(
             BoatRepository boatRepository,
             RentalRepository rentalRepository,
             DailyRentalNumberService dailyRentalNumberService,
+            WaitlistService waitlistService,
             @Value("${boatrental.startup.mode:normal}") String startupMode) {
         this.boatRepository = boatRepository;
         this.rentalRepository = rentalRepository;
         this.dailyRentalNumberService = dailyRentalNumberService;
+        this.waitlistService = waitlistService;
         this.startupMode = startupMode;
     }
 
@@ -43,6 +47,9 @@ public class DataSeeder implements ApplicationRunner {
         if (isTestMode()) {
             startAllBoatsSentOut();
         }
+
+        // Re-evaluate waitlist against current available boats (e.g. after restart).
+        waitlistService.runMatcherAfterReturn();
     }
 
     private void seedFleet() {
